@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catikhelghar-v4';
+const CACHE_NAME = 'catikhelghar-v5';
 
 const STATIC_ASSETS = [
   '/',
@@ -15,7 +15,12 @@ const STATIC_ASSETS = [
   '/offline',
   '/manifest.json',
   '/icon.svg',
-  '/dimisi-logo.png'
+  '/dimisi-logo.png',
+  '/themes/ludo/sakura/board.jpg',
+  '/themes/ludo/sakura/pawn-red.jpg',
+  '/themes/ludo/sakura/pawn-green.jpg',
+  '/themes/ludo/sakura/pawn-yellow.jpg',
+  '/themes/ludo/sakura/pawn-blue.jpg'
 ];
 
 self.addEventListener('install', event => {

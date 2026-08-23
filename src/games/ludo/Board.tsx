@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { LudoPlayer, LudoValidMove, LudoTheme } from './types';
+import { LudoPlayer, LudoValidMove, LudoTheme, LudoColor } from './types';
 import { getLudoTokenPosition } from './logic';
 
 interface LudoBoardProps {
@@ -12,6 +12,49 @@ interface LudoBoardProps {
   theme?: LudoTheme;
   onTokenClick: (tokenId: number) => void;
 }
+
+/**
+ * 3D Sakura Blossom Medallion Token Image Renderer
+ */
+const SakuraPawnToken: React.FC<{
+  color: LudoColor;
+  tokenId: number;
+  isMovable: boolean;
+  isMulti?: boolean;
+  onClick?: () => void;
+}> = ({ color, tokenId, isMovable, isMulti, onClick }) => {
+  const pawnImgMap: Record<LudoColor, string> = {
+    red: '/themes/ludo/sakura/pawn-red.jpg',
+    green: '/themes/ludo/sakura/pawn-green.jpg',
+    yellow: '/themes/ludo/sakura/pawn-yellow.jpg',
+    blue: '/themes/ludo/sakura/pawn-blue.jpg'
+  };
+
+  return (
+    <button
+      type="button"
+      disabled={!isMovable}
+      onClick={onClick}
+      aria-label={`${color} token ${tokenId + 1}`}
+      className={`relative rounded-full aspect-square flex items-center justify-center select-none overflow-hidden transition-all duration-200 ${
+        isMulti ? 'w-4 h-4' : 'w-6 h-6 sm:w-7 sm:h-7'
+      } ${
+        isMovable
+          ? 'scale-125 ring-4 ring-amber-400 z-30 animate-bounce cursor-pointer shadow-[0_0_16px_rgba(251,191,36,0.95)]'
+          : 'cursor-default shadow-[0_3px_6px_rgba(0,0,0,0.45)]'
+      }`}
+    >
+      <img
+        src={pawnImgMap[color]}
+        alt={`${color} pawn`}
+        className="w-full h-full object-cover rounded-full scale-[1.15] pointer-events-none"
+      />
+      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-slate-950/85 text-amber-300 font-black text-[7px] sm:text-[8px] flex items-center justify-center border border-amber-300/60 shadow-sm pointer-events-none">
+        {tokenId + 1}
+      </span>
+    </button>
+  );
+};
 
 export const LudoBoard: React.FC<LudoBoardProps> = ({
   players,
@@ -28,38 +71,34 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
     if (theme === 'sakura') {
       return {
         red: {
-          yard: 'bg-[#f498ac] border-[#df7e93]',
-          yardInner: 'bg-[#fff0f4]',
-          track: 'bg-[#f498ac] text-white',
+          yard: 'bg-transparent',
+          track: 'bg-[#e87a90]/70 text-white',
           token: '#e87a90',
           star: '🌸'
         },
         green: {
-          yard: 'bg-[#8fa85b] border-[#7a9348]',
-          yardInner: 'bg-[#f4f8ec]',
-          track: 'bg-[#8fa85b] text-white',
+          yard: 'bg-transparent',
+          track: 'bg-[#8ea358]/70 text-white',
           token: '#8ea358',
           star: '🌸'
         },
         yellow: {
-          yard: 'bg-[#ebb953] border-[#d8a339]',
-          yardInner: 'bg-[#fff9eb]',
-          track: 'bg-[#ebb953] text-slate-900',
+          yard: 'bg-transparent',
+          track: 'bg-[#e5b84c]/70 text-slate-900',
           token: '#e5b84c',
           star: '🌸'
         },
         blue: {
-          yard: 'bg-[#6c9bc5] border-[#5584ae]',
-          yardInner: 'bg-[#f0f6fc]',
-          track: 'bg-[#6c9bc5] text-white',
+          yard: 'bg-transparent',
+          track: 'bg-[#6b9ac4]/70 text-white',
           token: '#6b9ac4',
           star: '🌸'
         },
-        center: 'bg-gradient-to-br from-[#fff7f9] to-[#fce4ec] border-2 border-amber-300 shadow-inner',
-        centerIcon: '🌸',
-        defaultTrack: 'bg-[#fffdfa]',
-        defaultBorder: 'border-[#f2e6dc]',
-        safeStar: '🌸'
+        center: 'bg-transparent',
+        centerIcon: '',
+        defaultTrack: 'bg-transparent',
+        defaultBorder: 'border-transparent',
+        safeStar: ''
       };
     }
 
@@ -143,6 +182,16 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
 
   // Helper to determine cell background and styling on 15x15 board
   const getCellDetails = (r: number, c: number) => {
+    // Sakura Theme uses image background for all cells!
+    if (theme === 'sakura') {
+      return {
+        type: 'sakura-cell',
+        color: 'bg-transparent',
+        border: 'border-transparent',
+        isCenter: r >= 6 && r <= 8 && c >= 6 && c <= 8
+      };
+    }
+
     // Yards
     if (r < 6 && c < 6) return { type: 'yard', color: palette.red.yard, border: palette.red.yard };
     if (r < 6 && c > 8) return { type: 'yard', color: palette.green.yard, border: palette.green.yard };
@@ -190,7 +239,6 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
     }[] = [];
 
     players.forEach(p => {
-      // Map player theme color
       let customColor = p.colorHex;
       if (p.color === 'red') customColor = palette.red.token;
       else if (p.color === 'green') customColor = palette.green.token;
@@ -221,7 +269,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
   // Outer Board Wrapper Style based on theme
   const getBoardOuterStyle = () => {
     if (theme === 'sakura') {
-      return 'p-3 sm:p-4 bg-gradient-to-br from-[#f8d7da] via-[#fad4dc] to-[#edd0d7] rounded-[32px] border-4 border-[#e2a8b6] shadow-[0_20px_50px_rgba(226,168,182,0.35),inset_0_2px_4px_rgba(255,255,255,0.9)]';
+      return 'p-1 sm:p-2 bg-gradient-to-br from-[#f8d7da] via-[#fad4dc] to-[#edd0d7] rounded-[32px] border-4 border-[#e2a8b6] shadow-[0_20px_50px_rgba(226,168,182,0.4),inset_0_2px_4px_rgba(255,255,255,0.9)]';
     }
     if (theme === 'voxel') {
       return 'p-3 sm:p-4 bg-[#3a3a3a] rounded-[28px] border-4 border-[#222222] shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_2px_4px_rgba(255,255,255,0.1)]';
@@ -230,8 +278,21 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
   };
 
   return (
-    <div className={`w-full max-w-[480px] sm:max-w-[540px] mx-auto select-none transition-all duration-300 relative ${getBoardOuterStyle()}`}>
-      {/* Corner Accents for Voxel (Torches) or Sakura (Cherry Flowers) */}
+    <div
+      className={`w-full max-w-[480px] sm:max-w-[540px] mx-auto select-none transition-all duration-300 relative aspect-square overflow-hidden ${getBoardOuterStyle()}`}
+    >
+      {/* Background Image for Sakura Blossom Garden Theme */}
+      {theme === 'sakura' && (
+        <div
+          className="absolute inset-0 bg-cover bg-center rounded-[28px] overflow-hidden pointer-events-none"
+          style={{
+            backgroundImage: "url('/themes/ludo/sakura/board.jpg')",
+            backgroundSize: '100% 100%'
+          }}
+        />
+      )}
+
+      {/* Corner Torches for Voxel Theme */}
       {theme === 'voxel' && (
         <>
           <div className="absolute top-1 left-1 text-sm select-none pointer-events-none z-10">🔥</div>
@@ -241,28 +302,19 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
         </>
       )}
 
-      {theme === 'sakura' && (
-        <>
-          <div className="absolute -top-1 -left-1 text-base select-none pointer-events-none z-10">🌸</div>
-          <div className="absolute -top-1 -right-1 text-base select-none pointer-events-none z-10">🌸</div>
-          <div className="absolute -bottom-1 -left-1 text-base select-none pointer-events-none z-10">🌸</div>
-          <div className="absolute -bottom-1 -right-1 text-base select-none pointer-events-none z-10">🌸</div>
-        </>
-      )}
-
-      {/* 15x15 CSS Grid with explicit inline style */}
+      {/* 15x15 CSS Grid Overlay */}
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(15, minmax(0, 1fr))',
           gap: '1px'
         }}
-        className={`w-full rounded-2xl p-1 overflow-hidden shadow-inner ${
+        className={`w-full h-full rounded-2xl relative z-10 overflow-hidden ${
           theme === 'sakura'
-            ? 'bg-[#f4e4eb] border border-[#e6c2d0]'
+            ? 'p-[5.2%] sm:p-[5.4%]'
             : theme === 'voxel'
-            ? 'bg-[#262626] border border-[#404040]'
-            : 'bg-[#1c120a] border border-[#3e2718]'
+            ? 'bg-[#262626] border border-[#404040] p-1 shadow-inner'
+            : 'bg-[#1c120a] border border-[#3e2718] p-1 shadow-inner'
         }`}
       >
         {Array.from({ length: 15 }).map((_, r) =>
@@ -278,20 +330,35 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                     key={`${r}-${c}`}
                     className="aspect-square relative flex items-center justify-center bg-transparent col-span-1 row-span-1"
                   >
-                    <div className="absolute inset-0 flex items-center justify-center text-xs font-black drop-shadow-sm select-none">
-                      {palette.centerIcon}
-                    </div>
+                    {palette.centerIcon && (
+                      <div className="absolute inset-0 flex items-center justify-center text-xs font-black drop-shadow-sm select-none">
+                        {palette.centerIcon}
+                      </div>
+                    )}
                     {/* Render Home finished tokens */}
                     <div className="relative z-10 flex flex-wrap gap-0.5 items-center justify-center p-0.5">
-                      {tokens.map((t, idx) => (
-                        <div
-                          key={idx}
-                          className="w-3.5 h-3.5 rounded-full border border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-white"
-                          style={{ backgroundColor: t.customColor }}
-                        >
-                          {t.tokenId + 1}
-                        </div>
-                      ))}
+                      {tokens.map((t, idx) => {
+                        if (theme === 'sakura') {
+                          return (
+                            <SakuraPawnToken
+                              key={idx}
+                              color={t.player.color}
+                              tokenId={t.tokenId}
+                              isMovable={false}
+                              isMulti={true}
+                            />
+                          );
+                        }
+                        return (
+                          <div
+                            key={idx}
+                            className="w-3.5 h-3.5 rounded-full border border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-white"
+                            style={{ backgroundColor: t.customColor }}
+                          >
+                            {t.tokenId + 1}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -299,22 +366,35 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
               return (
                 <div
                   key={`${r}-${c}`}
-                  className="aspect-square flex items-center justify-center p-0.5"
+                  className="aspect-square flex items-center justify-center p-0.5 bg-transparent"
                 >
-                  {tokens.map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="w-3.5 h-3.5 rounded-full border border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-white"
-                      style={{ backgroundColor: t.customColor }}
-                    >
-                      {t.tokenId + 1}
-                    </div>
-                  ))}
+                  {tokens.map((t, idx) => {
+                    if (theme === 'sakura') {
+                      return (
+                        <SakuraPawnToken
+                          key={idx}
+                          color={t.player.color}
+                          tokenId={t.tokenId}
+                          isMovable={false}
+                          isMulti={true}
+                        />
+                      );
+                    }
+                    return (
+                      <div
+                        key={idx}
+                        className="w-3.5 h-3.5 rounded-full border border-white shadow-sm flex items-center justify-center text-[8px] font-bold text-white"
+                        style={{ backgroundColor: t.customColor }}
+                      >
+                        {t.tokenId + 1}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             }
 
-            // Yard corner background circular base spots
+            // Yard corner background circular base spots (for non-sakura themes)
             const isYardCircle =
               (r === 1 && (c === 1 || c === 4)) ||
               (r === 4 && (c === 1 || c === 4)) ||
@@ -329,16 +409,14 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
               <div
                 key={`${r}-${c}`}
                 className={`aspect-square relative flex items-center justify-center ${cell.color} ${
-                  isYardCircle
-                    ? theme === 'sakura'
-                      ? '!bg-[#fff7fa] rounded-full border border-[#f0c2d3] shadow-sm m-0.5'
-                      : theme === 'voxel'
+                  theme !== 'sakura' && isYardCircle
+                    ? theme === 'voxel'
                       ? '!bg-[#d4d4d4] rounded-sm border border-[#a3a3a3] shadow-inner m-0.5'
                       : '!bg-white/90 rounded-full shadow-inner m-0.5'
                     : ''
                 }`}
               >
-                {cell.star && !tokens.length && (
+                {cell.star && !tokens.length && palette.safeStar && (
                   <span className={`font-black text-xs sm:text-sm select-none ${
                     theme === 'sakura' ? 'text-pink-600' : 'text-amber-500'
                   }`}>
@@ -346,13 +424,29 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                   </span>
                 )}
 
-                {/* Tokens Stack */}
+                {/* Tokens Stack on this cell */}
                 {tokens.length > 0 && (
                   <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-0.5 p-0.5 z-20">
                     {tokens.map((t, idx) => {
                       const isMulti = tokens.length > 1;
 
-                      // Themed Token shape
+                      // 1. Sakura 3D Medallion Pawn
+                      if (theme === 'sakura') {
+                        return (
+                          <SakuraPawnToken
+                            key={idx}
+                            color={t.player.color}
+                            tokenId={t.tokenId}
+                            isMovable={t.isMovable}
+                            isMulti={isMulti}
+                            onClick={() => {
+                              if (t.isMovable) onTokenClick(t.tokenId);
+                            }}
+                          />
+                        );
+                      }
+
+                      // 2. Voxel 3D Isometric Cube Pawn
                       if (theme === 'voxel') {
                         return (
                           <button
@@ -380,6 +474,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                         );
                       }
 
+                      // 3. Classic Token
                       return (
                         <button
                           key={idx}
@@ -398,7 +493,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                           }`}
                           style={{
                             backgroundColor: t.customColor,
-                            boxShadow: theme === 'sakura' ? '0 2px 5px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.4)' : undefined
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.2), inset 0 2px 3px rgba(255,255,255,0.4)'
                           }}
                         >
                           <span>{t.tokenId + 1}</span>
