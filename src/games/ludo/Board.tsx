@@ -14,28 +14,47 @@ interface LudoBoardProps {
 }
 
 /**
- * 3D Sakura Blossom Medallion Token Image Renderer
+ * Procedural 3D Sakura Blossom Vector Medallion (Zero JPG artifacts, scales perfectly)
  */
-const SakuraPawnToken: React.FC<{
+const SakuraVectorPawn: React.FC<{
   color: LudoColor;
   tokenId: number;
   isMovable: boolean;
   isMulti?: boolean;
-  isYard?: boolean;
   onClick?: () => void;
-}> = ({ color, tokenId, isMovable, isMulti, isYard, onClick }) => {
-  const pawnImgMap: Record<LudoColor, string> = {
-    red: '/themes/ludo/sakura/pawn-red.jpg',
-    green: '/themes/ludo/sakura/pawn-green.jpg',
-    yellow: '/themes/ludo/sakura/pawn-yellow.jpg',
-    blue: '/themes/ludo/sakura/pawn-blue.jpg'
-  };
+}> = ({ color, tokenId, isMovable, isMulti, onClick }) => {
+  const palette = {
+    red: {
+      ring: '#e11d48',
+      petalStart: '#fda4af',
+      petalMid: '#f43f5e',
+      petalEnd: '#be123c',
+      glow: '#fb7185'
+    },
+    green: {
+      ring: '#059669',
+      petalStart: '#a7f3d0',
+      petalMid: '#10b981',
+      petalEnd: '#047857',
+      glow: '#34d399'
+    },
+    yellow: {
+      ring: '#d97706',
+      petalStart: '#fde68a',
+      petalMid: '#f59e0b',
+      petalEnd: '#b45309',
+      glow: '#fbbf24'
+    },
+    blue: {
+      ring: '#0284c7',
+      petalStart: '#bae6fd',
+      petalMid: '#0ea5e9',
+      petalEnd: '#0369a1',
+      glow: '#38bdf8'
+    }
+  }[color];
 
-  const sizeClass = isMulti
-    ? 'w-4 h-4'
-    : isYard
-    ? 'w-7 h-7 sm:w-8 sm:h-8'
-    : 'w-6 h-6 sm:w-7 sm:h-7';
+  const sizeClass = isMulti ? 'w-4 h-4' : 'w-[90%] h-[90%] max-w-[32px] max-h-[32px]';
 
   return (
     <button
@@ -43,17 +62,61 @@ const SakuraPawnToken: React.FC<{
       disabled={!isMovable}
       onClick={onClick}
       aria-label={`${color} token ${tokenId + 1}`}
-      className={`relative rounded-full aspect-square flex items-center justify-center select-none overflow-hidden transition-all duration-200 border-2 border-amber-300/80 shadow-[0_4px_10px_rgba(0,0,0,0.6),0_0_8px_rgba(251,191,36,0.4)] ${sizeClass} ${
+      className={`relative aspect-square flex items-center justify-center select-none transition-all duration-200 ${sizeClass} ${
         isMovable
-          ? 'scale-125 ring-4 ring-amber-400 z-30 animate-bounce cursor-pointer shadow-[0_0_20px_rgba(251,191,36,1)]'
-          : 'cursor-default'
+          ? 'scale-125 z-30 animate-bounce cursor-pointer drop-shadow-[0_0_12px_rgba(251,191,36,1)]'
+          : 'cursor-default drop-shadow-[0_3px_6px_rgba(0,0,0,0.45)] hover:scale-105'
       }`}
     >
-      <img
-        src={pawnImgMap[color]}
-        alt={`${color} pawn`}
-        className="w-full h-full object-cover rounded-full scale-[1.28] pointer-events-none"
-      />
+      <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
+        <defs>
+          <linearGradient id={`goldRim-${color}`} x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#fff8db" />
+            <stop offset="30%" stopColor="#f59e0b" />
+            <stop offset="60%" stopColor="#d97706" />
+            <stop offset="100%" stopColor="#78350f" />
+          </linearGradient>
+
+          <radialGradient id={`porcelain-${color}`} cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="70%" stopColor="#fffaf0" />
+            <stop offset="100%" stopColor="#f3e5d0" />
+          </radialGradient>
+
+          <radialGradient id={`petal-${color}`} cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stopColor={palette.petalStart} />
+            <stop offset="55%" stopColor={palette.petalMid} />
+            <stop offset="100%" stopColor={palette.petalEnd} />
+          </radialGradient>
+        </defs>
+
+        {/* Outer 3D Gold Bevel Rim */}
+        <circle cx="50" cy="50" r="48" fill={`url(#goldRim-${color})`} />
+        {/* Inner Colored Accent Rim */}
+        <circle cx="50" cy="50" r="43" fill={palette.ring} />
+        {/* Fine Inner Gold Inset */}
+        <circle cx="50" cy="50" r="39" fill={`url(#goldRim-${color})`} />
+        {/* Porcelain Pearl Center Bed */}
+        <circle cx="50" cy="50" r="35" fill={`url(#porcelain-${color})`} />
+
+        {/* 5 Sculpted Sakura Flower Petals */}
+        <g transform="translate(50, 50)">
+          {[0, 72, 144, 216, 288].map((angle, i) => (
+            <path
+              key={i}
+              d="M 0 0 C -11 -10 -15 -26 0 -31 C 15 -26 11 -10 0 0"
+              transform={`rotate(${angle})`}
+              fill={`url(#petal-${color})`}
+              stroke="#eab308"
+              strokeWidth="1.2"
+            />
+          ))}
+
+          {/* Golden Center Core Pistil */}
+          <circle cx="0" cy="0" r="6.5" fill={`url(#goldRim-${color})`} />
+          <circle cx="-1.5" cy="-1.5" r="2" fill="#ffffff" opacity="0.8" />
+        </g>
+      </svg>
     </button>
   );
 };
@@ -344,13 +407,12 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                       {tokens.map((t, idx) => {
                         if (theme === 'sakura') {
                           return (
-                            <SakuraPawnToken
+                            <SakuraVectorPawn
                               key={idx}
                               color={t.player.color}
                               tokenId={t.tokenId}
                               isMovable={false}
                               isMulti={true}
-                              isYard={false}
                             />
                           );
                         }
@@ -376,13 +438,12 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                   {tokens.map((t, idx) => {
                     if (theme === 'sakura') {
                       return (
-                        <SakuraPawnToken
+                        <SakuraVectorPawn
                           key={idx}
                           color={t.player.color}
                           tokenId={t.tokenId}
                           isMovable={false}
                           isMulti={true}
-                          isYard={false}
                         />
                       );
                     }
@@ -402,14 +463,14 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
 
             // Yard corner background circular base spots (for non-sakura themes)
             const isYardCircle =
-              (r === 1 && (c === 2 || c === 3)) ||
+              (r === 2 && (c === 2 || c === 3)) ||
               (r === 3 && (c === 2 || c === 3)) ||
-              (r === 1 && (c === 11 || c === 12)) ||
+              (r === 2 && (c === 11 || c === 12)) ||
               (r === 3 && (c === 11 || c === 12)) ||
               (r === 11 && (c === 11 || c === 12)) ||
-              (r === 13 && (c === 11 || c === 12)) ||
+              (r === 12 && (c === 11 || c === 12)) ||
               (r === 11 && (c === 2 || c === 3)) ||
-              (r === 13 && (c === 2 || c === 3));
+              (r === 12 && (c === 2 || c === 3));
 
             return (
               <div
@@ -436,16 +497,15 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                     {tokens.map((t, idx) => {
                       const isMulti = tokens.length > 1;
 
-                      // 1. Sakura 3D Medallion Pawn
+                      // 1. Sakura 3D Procedural Vector Medallion
                       if (theme === 'sakura') {
                         return (
-                          <SakuraPawnToken
+                          <SakuraVectorPawn
                             key={idx}
                             color={t.player.color}
                             tokenId={t.tokenId}
                             isMovable={t.isMovable}
                             isMulti={isMulti}
-                            isYard={t.isYard}
                             onClick={() => {
                               if (t.isMovable) onTokenClick(t.tokenId);
                             }}

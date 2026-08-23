@@ -65,7 +65,7 @@ export const LUDO_HOME_COLUMNS: Record<number, [number, number][]> = {
   3: [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7], [8, 7]]  // Blue
 };
 
-// Yard circle coordinates centered inside the 6x6 yards
+// Yard coordinates placing tokens directly into the printed yard circles
 export const LUDO_PLAYER_CONFIGS: {
   id: number;
   color: LudoColor;
@@ -82,7 +82,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#dc2626',
     lightColorHex: '#fecaca',
     startTrackIndex: 0,
-    yardCoords: [[1, 2], [1, 3], [3, 2], [3, 3]]
+    yardCoords: [[2, 2], [2, 3], [3, 2], [3, 3]]
   },
   {
     id: 1,
@@ -91,7 +91,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#16a34a',
     lightColorHex: '#bbf7d0',
     startTrackIndex: 13,
-    yardCoords: [[1, 11], [1, 12], [3, 11], [3, 12]]
+    yardCoords: [[2, 11], [2, 12], [3, 11], [3, 12]]
   },
   {
     id: 2,
@@ -100,7 +100,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#ca8a04',
     lightColorHex: '#fef08a',
     startTrackIndex: 26,
-    yardCoords: [[11, 11], [11, 12], [13, 11], [13, 12]]
+    yardCoords: [[11, 11], [11, 12], [12, 11], [12, 12]]
   },
   {
     id: 3,
@@ -109,7 +109,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#0284c7',
     lightColorHex: '#bae6fd',
     startTrackIndex: 39,
-    yardCoords: [[11, 2], [11, 3], [13, 2], [13, 3]]
+    yardCoords: [[11, 2], [11, 3], [12, 2], [12, 3]]
   }
 ];
 
