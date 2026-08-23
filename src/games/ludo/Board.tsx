@@ -21,8 +21,9 @@ const SakuraPawnToken: React.FC<{
   tokenId: number;
   isMovable: boolean;
   isMulti?: boolean;
+  isYard?: boolean;
   onClick?: () => void;
-}> = ({ color, tokenId, isMovable, isMulti, onClick }) => {
+}> = ({ color, tokenId, isMovable, isMulti, isYard, onClick }) => {
   const pawnImgMap: Record<LudoColor, string> = {
     red: '/themes/ludo/sakura/pawn-red.jpg',
     green: '/themes/ludo/sakura/pawn-green.jpg',
@@ -30,28 +31,29 @@ const SakuraPawnToken: React.FC<{
     blue: '/themes/ludo/sakura/pawn-blue.jpg'
   };
 
+  const sizeClass = isMulti
+    ? 'w-4 h-4'
+    : isYard
+    ? 'w-7 h-7 sm:w-8 sm:h-8'
+    : 'w-6 h-6 sm:w-7 sm:h-7';
+
   return (
     <button
       type="button"
       disabled={!isMovable}
       onClick={onClick}
       aria-label={`${color} token ${tokenId + 1}`}
-      className={`relative rounded-full aspect-square flex items-center justify-center select-none overflow-hidden transition-all duration-200 ${
-        isMulti ? 'w-4 h-4' : 'w-6 h-6 sm:w-7 sm:h-7'
-      } ${
+      className={`relative rounded-full aspect-square flex items-center justify-center select-none overflow-hidden transition-all duration-200 border-2 border-amber-300/80 shadow-[0_4px_10px_rgba(0,0,0,0.6),0_0_8px_rgba(251,191,36,0.4)] ${sizeClass} ${
         isMovable
-          ? 'scale-125 ring-4 ring-amber-400 z-30 animate-bounce cursor-pointer shadow-[0_0_16px_rgba(251,191,36,0.95)]'
-          : 'cursor-default shadow-[0_3px_6px_rgba(0,0,0,0.45)]'
+          ? 'scale-125 ring-4 ring-amber-400 z-30 animate-bounce cursor-pointer shadow-[0_0_20px_rgba(251,191,36,1)]'
+          : 'cursor-default'
       }`}
     >
       <img
         src={pawnImgMap[color]}
         alt={`${color} pawn`}
-        className="w-full h-full object-cover rounded-full scale-[1.15] pointer-events-none"
+        className="w-full h-full object-cover rounded-full scale-[1.28] pointer-events-none"
       />
-      <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-slate-950/85 text-amber-300 font-black text-[7px] sm:text-[8px] flex items-center justify-center border border-amber-300/60 shadow-sm pointer-events-none">
-        {tokenId + 1}
-      </span>
     </button>
   );
 };
@@ -236,6 +238,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
       tokenId: number;
       isMovable: boolean;
       customColor: string;
+      isYard: boolean;
     }[] = [];
 
     players.forEach(p => {
@@ -257,7 +260,8 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
             player: p,
             tokenId: tok.id,
             isMovable,
-            customColor
+            customColor,
+            isYard: tok.step === -1
           });
         }
       });
@@ -346,6 +350,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                               tokenId={t.tokenId}
                               isMovable={false}
                               isMulti={true}
+                              isYard={false}
                             />
                           );
                         }
@@ -377,6 +382,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                           tokenId={t.tokenId}
                           isMovable={false}
                           isMulti={true}
+                          isYard={false}
                         />
                       );
                     }
@@ -396,14 +402,14 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
 
             // Yard corner background circular base spots (for non-sakura themes)
             const isYardCircle =
-              (r === 1 && (c === 1 || c === 4)) ||
-              (r === 4 && (c === 1 || c === 4)) ||
-              (r === 1 && (c === 10 || c === 13)) ||
-              (r === 4 && (c === 10 || c === 13)) ||
-              (r === 10 && (c === 10 || c === 13)) ||
-              (r === 13 && (c === 10 || c === 13)) ||
-              (r === 10 && (c === 1 || c === 4)) ||
-              (r === 13 && (c === 1 || c === 4));
+              (r === 1 && (c === 2 || c === 3)) ||
+              (r === 3 && (c === 2 || c === 3)) ||
+              (r === 1 && (c === 11 || c === 12)) ||
+              (r === 3 && (c === 11 || c === 12)) ||
+              (r === 11 && (c === 11 || c === 12)) ||
+              (r === 13 && (c === 11 || c === 12)) ||
+              (r === 11 && (c === 2 || c === 3)) ||
+              (r === 13 && (c === 2 || c === 3));
 
             return (
               <div
@@ -439,6 +445,7 @@ export const LudoBoard: React.FC<LudoBoardProps> = ({
                             tokenId={t.tokenId}
                             isMovable={t.isMovable}
                             isMulti={isMulti}
+                            isYard={t.isYard}
                             onClick={() => {
                               if (t.isMovable) onTokenClick(t.tokenId);
                             }}
