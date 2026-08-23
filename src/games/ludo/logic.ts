@@ -82,7 +82,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#dc2626',
     lightColorHex: '#fecaca',
     startTrackIndex: 0,
-    yardCoords: [[2, 2], [2, 3], [3, 2], [3, 3]]
+    yardCoords: [[2, 1], [2, 2], [3, 1], [3, 2]]
   },
   {
     id: 1,
@@ -91,7 +91,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#16a34a',
     lightColorHex: '#bbf7d0',
     startTrackIndex: 13,
-    yardCoords: [[2, 11], [2, 12], [3, 11], [3, 12]]
+    yardCoords: [[2, 9], [2, 10], [3, 9], [3, 10]]
   },
   {
     id: 2,
@@ -100,7 +100,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#ca8a04',
     lightColorHex: '#fef08a',
     startTrackIndex: 26,
-    yardCoords: [[11, 11], [11, 12], [12, 11], [12, 12]]
+    yardCoords: [[11, 10], [11, 11], [12, 10], [12, 11]]
   },
   {
     id: 3,
@@ -109,7 +109,7 @@ export const LUDO_PLAYER_CONFIGS: {
     colorHex: '#0284c7',
     lightColorHex: '#bae6fd',
     startTrackIndex: 39,
-    yardCoords: [[11, 2], [11, 3], [12, 2], [12, 3]]
+    yardCoords: [[11, 1], [11, 2], [12, 1], [12, 2]]
   }
 ];
 
