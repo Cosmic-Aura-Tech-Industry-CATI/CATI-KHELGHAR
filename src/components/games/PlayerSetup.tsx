@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Play, Bot, User, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { Users, Play, Bot, User, ChevronDown, ChevronUp, Palette } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 
@@ -12,6 +12,13 @@ export interface PlayerConfig {
   isBot: boolean;
 }
 
+export interface GameThemeOption {
+  id: string;
+  name: string;
+  icon: string;
+  description?: string;
+}
+
 interface PlayerSetupProps {
   isOpen: boolean;
   gameTitle: string;
@@ -19,7 +26,10 @@ interface PlayerSetupProps {
   maxPlayers: number;
   initialPlayers?: PlayerConfig[];
   initialNames?: string[];
-  onStart: (players: PlayerConfig[], count: number) => void;
+  themes?: GameThemeOption[];
+  currentTheme?: string;
+  onThemeChange?: (themeId: string) => void;
+  onStart: (players: PlayerConfig[], count: number, selectedTheme?: string) => void;
   onClose: () => void;
 }
 
@@ -30,12 +40,19 @@ export const PlayerSetup: React.FC<PlayerSetupProps> = ({
   maxPlayers,
   initialPlayers,
   initialNames,
+  themes,
+  currentTheme,
+  onThemeChange,
   onStart,
   onClose
 }) => {
   // Determine default mode based on initial players
   const hasInitialBot = initialPlayers?.some(p => p.isBot) ?? true;
   const [playMode, setPlayMode] = useState<GamePlayMode>(hasInitialBot ? 'bot' : 'peoples');
+
+  const [selectedTheme, setSelectedTheme] = useState<string>(
+    currentTheme || (themes && themes.length > 0 ? themes[0].id : '')
+  );
 
   const [playerCount, setPlayerCount] = useState<number>(() => {
     if (initialPlayers && initialPlayers.length >= minPlayers) return initialPlayers.length;
@@ -84,6 +101,13 @@ export const PlayerSetup: React.FC<PlayerSetupProps> = ({
     setPlayers(generatePlayers(playMode, count));
   };
 
+  const handleThemeSelect = (themeId: string) => {
+    setSelectedTheme(themeId);
+    if (onThemeChange) {
+      onThemeChange(themeId);
+    }
+  };
+
   const handleNameChange = (idx: number, val: string) => {
     const updated = [...players];
     updated[idx] = { ...updated[idx], name: val };
@@ -111,16 +135,16 @@ export const PlayerSetup: React.FC<PlayerSetupProps> = ({
       name: p.name.trim() || (p.isBot ? `Bot ${i + 1} 🤖` : `Player ${i + 1}`),
       isBot: p.isBot
     }));
-    onStart(finalConfigs, playerCount);
+    onStart(finalConfigs, playerCount, selectedTheme);
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`${gameTitle} • Game Setup`}>
+    <Modal isOpen={isOpen} onClose={onClose} title={`${gameTitle} • Settings & Setup`}>
       <form onSubmit={handleFormSubmit} className="space-y-5">
         {/* Step 1: Mode Selection (Play with Bot vs Peoples) */}
         <div>
           <label className="block text-xs font-black uppercase tracking-wider text-slate-400 mb-2">
-            1. Select Who You Want to Play With:
+            1. Select Game Mode:
           </label>
           <div className="grid grid-cols-2 gap-2.5">
             {/* Play with Bot */}
@@ -177,11 +201,49 @@ export const PlayerSetup: React.FC<PlayerSetupProps> = ({
           </div>
         </div>
 
-        {/* Step 2: Player Count Selector (if min < max, e.g. 2 to 4 players) */}
+        {/* Step 2: Theme Selector (If game has themes) */}
+        {themes && themes.length > 0 && (
+          <div>
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5 text-amber-400" />
+              <span>2. Select Board Theme:</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {themes.map(t => {
+                const isThemeActive = selectedTheme === t.id;
+
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => handleThemeSelect(t.id)}
+                    className={`p-2.5 rounded-2xl border text-center transition-all cursor-pointer flex flex-col items-center justify-center gap-1 select-none ${
+                      isThemeActive
+                        ? 'bg-amber-500/15 border-amber-400 ring-2 ring-amber-400/40 shadow-md scale-[1.02]'
+                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750'
+                    }`}
+                  >
+                    <span className="text-xl">{t.icon}</span>
+                    <span className={`text-xs font-black ${isThemeActive ? 'text-amber-400' : 'text-white'}`}>
+                      {t.name}
+                    </span>
+                    {t.description && (
+                      <span className="text-[9px] text-slate-400 font-medium leading-tight">
+                        {t.description}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Step 3: Player Count Selector (if min < max, e.g. 2 to 4 players) */}
         {minPlayers < maxPlayers && (
           <div>
             <label className="block text-xs font-black uppercase tracking-wider text-slate-400 mb-2">
-              2. Select Number of Players:
+              {themes && themes.length > 0 ? '3.' : '2.'} Select Number of Players:
             </label>
             <div className="grid grid-cols-3 gap-2">
               {Array.from({ length: maxPlayers - minPlayers + 1 }).map((_, i) => {
@@ -212,7 +274,7 @@ export const PlayerSetup: React.FC<PlayerSetupProps> = ({
           </div>
         )}
 
-        {/* Step 3: Customize Names (Collapsible / Quick View) */}
+        {/* Step 4: Customize Names (Collapsible) */}
         <div className="border-t border-slate-800 pt-3">
           <button
             type="button"

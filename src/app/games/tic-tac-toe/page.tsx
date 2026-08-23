@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GameHeader } from '@/components/games/GameHeader';
 import { GameResultModal } from '@/components/games/GameResultModal';
-import { PlayerSetup, PlayerConfig } from '@/components/games/PlayerSetup';
+import { PlayerSetup, PlayerConfig, GameThemeOption } from '@/components/games/PlayerSetup';
 import { TTTBoard } from '@/games/tic-tac-toe/Board';
 import {
   createInitialTTTState,
@@ -15,6 +15,27 @@ import {
 import { TTTGameState, TTTMatchMode, TTTTheme } from '@/games/tic-tac-toe/types';
 import { StorageService } from '@/lib/storage';
 import { sounds } from '@/lib/sounds';
+
+const TTT_THEMES: GameThemeOption[] = [
+  {
+    id: 'voxel',
+    name: 'Block Craft',
+    icon: '💎',
+    description: 'Minecraft Grass & Diamond Blocks'
+  },
+  {
+    id: 'wood',
+    name: 'Classic Wood',
+    icon: '🪵',
+    description: 'Walnut Wood & Ivory Porcelain'
+  },
+  {
+    id: 'neon',
+    name: 'Cyber Neon',
+    icon: '⚡',
+    description: 'Glowing Cyan & Rose Grid'
+  }
+];
 
 export default function TicTacToePage() {
   const [theme, setTheme] = useState<TTTTheme>('voxel');
@@ -46,8 +67,8 @@ export default function TicTacToePage() {
     }
   }, []);
 
-  const handleThemeChange = (newTheme: TTTTheme) => {
-    sounds.playClick();
+  const handleThemeChange = (newThemeId: string) => {
+    const newTheme = newThemeId as TTTTheme;
     setTheme(newTheme);
     StorageService.set('ttt_theme', newTheme);
   };
@@ -108,7 +129,14 @@ export default function TicTacToePage() {
     setGameState(resetTTTMatch(gameState));
   };
 
-  const handleSetupComplete = (players: PlayerConfig[]) => {
+  const handleSetupComplete = (
+    players: PlayerConfig[],
+    _count: number,
+    selectedTheme?: string
+  ) => {
+    if (selectedTheme) {
+      handleThemeChange(selectedTheme);
+    }
     StorageService.savePlayerConfigs('tic-tac-toe', players);
     setGameState(createInitialTTTState(players[0], players[1], mode));
     setIsSetupOpen(false);
@@ -131,58 +159,18 @@ export default function TicTacToePage() {
       : { label: 'Terracotta O', bg: 'bg-[#d33420] text-white border-red-400' };
   };
 
+  const activeThemeObj = TTT_THEMES.find(t => t.id === theme) || TTT_THEMES[0];
+
   return (
     <div className="py-6 px-4 max-w-lg mx-auto space-y-5 animate-fadeIn">
       {/* Top Header */}
       <GameHeader
         title="Tic Tac Toe"
         icon="❌⭕"
-        subtitle="Voxel Craft & Classic Themes • Play with Friends or AI"
+        subtitle={`Theme: ${activeThemeObj.icon} ${activeThemeObj.name} • Tap ⚙️ to change`}
         onRestart={handleRestartMatch}
         onOpenSettings={() => setIsSetupOpen(true)}
       />
-
-      {/* Theme Switcher Bar */}
-      <div className="flex items-center justify-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
-        <span className="text-[11px] font-bold text-slate-400 pl-1">Theme:</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => handleThemeChange('voxel')}
-            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-              theme === 'voxel'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>💎 Block Craft</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleThemeChange('wood')}
-            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-              theme === 'wood'
-                ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>🪵 Classic Wood</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleThemeChange('neon')}
-            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
-              theme === 'neon'
-                ? 'bg-gradient-to-r from-cyan-600 to-rose-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <span>⚡ Cyber Neon</span>
-          </button>
-        </div>
-      </div>
 
       {/* Players Scoreboard & Active Turn Badge */}
       <div className="grid grid-cols-2 gap-3">
@@ -249,7 +237,7 @@ export default function TicTacToePage() {
         </p>
       </div>
 
-      {/* Setup Modal */}
+      {/* Setup / Settings Modal with Theme Selection */}
       <PlayerSetup
         isOpen={isSetupOpen}
         gameTitle="Tic Tac Toe"
@@ -259,6 +247,9 @@ export default function TicTacToePage() {
           name: p.name,
           isBot: !!p.isBot
         }))}
+        themes={TTT_THEMES}
+        currentTheme={theme}
+        onThemeChange={handleThemeChange}
         onStart={handleSetupComplete}
         onClose={() => setIsSetupOpen(false)}
       />
