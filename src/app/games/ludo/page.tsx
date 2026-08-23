@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { GameHeader } from '@/components/games/GameHeader';
 import { GameResultModal } from '@/components/games/GameResultModal';
-import { PlayerSetup, PlayerConfig } from '@/components/games/PlayerSetup';
+import { PlayerSetup, PlayerConfig, GameThemeOption } from '@/components/games/PlayerSetup';
 import { DiceRoller } from '@/components/ui/DiceRoller';
 import { LudoBoard } from '@/games/ludo/Board';
 import {
@@ -13,11 +13,34 @@ import {
   passLudoTurn,
   getBestLudoMove
 } from '@/games/ludo/logic';
-import { LudoGameState } from '@/games/ludo/types';
+import { LudoGameState, LudoTheme } from '@/games/ludo/types';
 import { StorageService } from '@/lib/storage';
 import { sounds } from '@/lib/sounds';
 
+const LUDO_THEMES: GameThemeOption[] = [
+  {
+    id: 'sakura',
+    name: 'Sakura Garden',
+    icon: '🌸',
+    description: 'Pastel Cherry Blossom & Floral Medallions'
+  },
+  {
+    id: 'voxel',
+    name: 'Block Craft',
+    icon: '🧱',
+    description: 'Minecraft Voxel Stone, Wool & Torches'
+  },
+  {
+    id: 'classic',
+    name: 'Classic Royal',
+    icon: '🪵',
+    description: 'Handcrafted Walnut & Royal Colors'
+  }
+];
+
 export default function LudoPage() {
+  const [theme, setTheme] = useState<LudoTheme>('sakura');
+
   const [gameState, setGameState] = useState<LudoGameState>(() =>
     createInitialLudoState(4, [
       { name: 'Player 1 (Red)', isBot: false },
@@ -31,8 +54,11 @@ export default function LudoPage() {
 
   const botActionTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // Load configured players from storage on mount
+  // Load configured players & theme from storage on mount
   useEffect(() => {
+    const savedTheme = StorageService.get<LudoTheme>('ludo_theme', 'sakura');
+    setTheme(savedTheme);
+
     const saved = StorageService.getPlayerConfigs('ludo', [
       { name: 'Player 1 (Red)', isBot: false },
       { name: 'Bot Alpha (Green) 🤖', isBot: true },
@@ -43,6 +69,12 @@ export default function LudoPage() {
       setGameState(createInitialLudoState(saved.length, saved));
     }
   }, []);
+
+  const handleThemeChange = (newThemeId: string) => {
+    const newTheme = newThemeId as LudoTheme;
+    setTheme(newTheme);
+    StorageService.set('ludo_theme', newTheme);
+  };
 
   const activePlayer = gameState.players[gameState.currentTurnIndex];
 
@@ -163,11 +195,20 @@ export default function LudoPage() {
     );
   };
 
-  const handleSetupComplete = (players: PlayerConfig[], count: number) => {
+  const handleSetupComplete = (
+    players: PlayerConfig[],
+    count: number,
+    selectedTheme?: string
+  ) => {
+    if (selectedTheme) {
+      handleThemeChange(selectedTheme);
+    }
     StorageService.savePlayerConfigs('ludo', players);
     setGameState(createInitialLudoState(count, players));
     setIsSetupOpen(false);
   };
+
+  const activeThemeObj = LUDO_THEMES.find(t => t.id === theme) || LUDO_THEMES[0];
 
   return (
     <div className="py-6 px-4 max-w-2xl mx-auto space-y-5 animate-fadeIn">
@@ -175,7 +216,7 @@ export default function LudoPage() {
       <GameHeader
         title="Ludo"
         icon="🎲"
-        subtitle={`${gameState.players.length} Players • Play with Friends or AI Bots`}
+        subtitle={`Theme: ${activeThemeObj.icon} ${activeThemeObj.name} • Tap ⚙️ to change`}
         onRestart={handleRestart}
         onOpenSettings={() => setIsSetupOpen(true)}
       />
@@ -220,12 +261,13 @@ export default function LudoPage() {
         })}
       </div>
 
-      {/* 15x15 Ludo Board */}
+      {/* 15x15 Themed Ludo Board */}
       <LudoBoard
         players={gameState.players}
         validMoves={gameState.validMoves}
         currentTurnIndex={gameState.currentTurnIndex}
         hasRolled={gameState.hasRolled}
+        theme={theme}
         onTokenClick={handleTokenClick}
       />
 
@@ -276,7 +318,7 @@ export default function LudoPage() {
         </div>
       </div>
 
-      {/* Setup Modal */}
+      {/* Setup / Settings Modal with Theme Selection */}
       <PlayerSetup
         isOpen={isSetupOpen}
         gameTitle="Ludo"
@@ -286,6 +328,9 @@ export default function LudoPage() {
           name: p.name,
           isBot: !!p.isBot
         }))}
+        themes={LUDO_THEMES}
+        currentTheme={theme}
+        onThemeChange={handleThemeChange}
         onStart={handleSetupComplete}
         onClose={() => setIsSetupOpen(false)}
       />

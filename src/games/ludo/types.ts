@@ -1,5 +1,7 @@
 export type LudoColor = 'red' | 'green' | 'yellow' | 'blue';
 
+export type LudoTheme = 'sakura' | 'voxel' | 'classic';
+
 export interface LudoToken {
   id: number; // 0, 1, 2, 3
   step: number; // -1 = In Yard, 0..50 = On 52-cell Track, 51..55 = In Home Column, 56 = Home!
@@ -40,4 +42,5 @@ export interface LudoGameState {
   winnerRankings: LudoPlayer[];
   isGameOver: boolean;
   activityLog: string[];
+  theme?: LudoTheme;
 }
