@@ -1,346 +1,197 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { GameHeader } from '@/components/games/GameHeader';
-import { GameResultModal } from '@/components/games/GameResultModal';
 import { PlayerSetup, PlayerConfig, GameThemeOption } from '@/components/games/PlayerSetup';
-import { DiceRoller } from '@/components/ui/DiceRoller';
-import { LudoBoard } from '@/games/ludo/Board';
-import {
-  createInitialLudoState,
-  getLudoValidMoves,
-  executeLudoTokenMove,
-  passLudoTurn,
-  getBestLudoMove
-} from '@/games/ludo/logic';
-import { LudoGameState, LudoTheme } from '@/games/ludo/types';
+import { useLudoGame, createInitialState, PlayerSetupConfig } from '@/games/ludo/hooks/useLudoGame';
+import { LudoBoard } from '@/games/ludo/components/LudoBoard';
+import { Dice } from '@/games/ludo/components/Dice';
+import { PlayerPanel } from '@/games/ludo/components/PlayerPanel';
+import { TurnIndicator } from '@/games/ludo/components/TurnIndicator';
+import { PassDeviceModal } from '@/games/ludo/components/PassDeviceModal';
+import { WinnerModal } from '@/games/ludo/components/WinnerModal';
 import { StorageService } from '@/lib/storage';
 import { sounds } from '@/lib/sounds';
+import { Player } from '@/games/ludo/types';
 
 const LUDO_THEMES: GameThemeOption[] = [
-  {
-    id: 'sakura',
-    name: 'Sakura Garden',
-    icon: '🌸',
-    description: 'Pastel Cherry Blossom & Floral Medallions'
-  },
-  {
-    id: 'voxel',
-    name: 'Block Craft',
-    icon: '🧱',
-    description: 'Minecraft Voxel Stone, Wool & Torches'
-  },
-  {
-    id: 'classic',
-    name: 'Classic Royal',
-    icon: '🪵',
-    description: 'Handcrafted Walnut & Royal Colors'
-  }
+  { id: 'sakura', name: 'Sakura Garden', icon: '🌸', description: 'Cherry Blossom Japanese theme' },
+  { id: 'voxel',  name: 'Block Craft',   icon: '🧱', description: 'Minecraft Voxel theme' },
+  { id: 'classic', name: 'Classic Royal', icon: '🪵', description: 'Handcrafted Walnut theme' },
+];
+
+const DEFAULT_PLAYER_CONFIGS: PlayerSetupConfig[] = [
+  { name: 'Player 1', isBot: false },
+  { name: 'Bot Alpha 🤖', isBot: true },
+  { name: 'Bot Beta 🤖', isBot: true },
+  { name: 'Bot Gamma 🤖', isBot: true },
 ];
 
 export default function LudoPage() {
-  const [theme, setTheme] = useState<LudoTheme>('sakura');
+  const [playerCount, setPlayerCount] = useState(4);
+  const [playerConfigs, setPlayerConfigs] = useState<PlayerSetupConfig[]>(DEFAULT_PLAYER_CONFIGS);
+  const [isSetupOpen, setIsSetupOpen] = useState(false);
+  const [theme, setTheme] = useState('sakura');
 
-  const [gameState, setGameState] = useState<LudoGameState>(() =>
-    createInitialLudoState(4, [
-      { name: 'Player 1 (Red)', isBot: false },
-      { name: 'Bot Alpha (Green) 🤖', isBot: true },
-      { name: 'Bot Beta (Yellow) 🤖', isBot: true },
-      { name: 'Bot Gamma (Blue) 🤖', isBot: true }
-    ])
-  );
-  const [isSetupOpen, setIsSetupOpen] = useState<boolean>(false);
-  const [showResultModal, setShowResultModal] = useState<boolean>(false);
-
-  const botActionTimer = useRef<NodeJS.Timeout | null>(null);
-
-  // Load configured players & theme from storage on mount
+  // Load saved configs on mount
   useEffect(() => {
-    const savedTheme = StorageService.get<LudoTheme>('ludo_theme', 'sakura');
+    const savedTheme = StorageService.get<string>('ludo_theme', 'sakura');
     setTheme(savedTheme);
-
-    const saved = StorageService.getPlayerConfigs('ludo', [
-      { name: 'Player 1 (Red)', isBot: false },
-      { name: 'Bot Alpha (Green) 🤖', isBot: true },
-      { name: 'Bot Beta (Yellow) 🤖', isBot: true },
-      { name: 'Bot Gamma (Blue) 🤖', isBot: true }
-    ]);
-    if (saved && saved.length >= 2) {
-      setGameState(createInitialLudoState(saved.length, saved));
+    const savedPlayers = StorageService.getPlayerConfigs('ludo', DEFAULT_PLAYER_CONFIGS);
+    if (savedPlayers && savedPlayers.length >= 2) {
+      setPlayerConfigs(savedPlayers);
+      setPlayerCount(savedPlayers.length);
     }
   }, []);
 
-  const handleThemeChange = (newThemeId: string) => {
-    const newTheme = newThemeId as LudoTheme;
-    setTheme(newTheme);
-    StorageService.set('ludo_theme', newTheme);
-  };
+  const { state, currentPlayer, rollDice: engineRollDice, selectPawn: engineSelectPawn, confirmHandoff, restart, boardCells } =
+    useLudoGame(playerConfigs, playerCount);
 
-  const activePlayer = gameState.players[gameState.currentTurnIndex];
+  const handleRollDice = useCallback(() => {
+    sounds.playDiceRoll?.();
+    engineRollDice();
+  }, [engineRollDice]);
 
-  // AI Bot Auto-Roll & Auto-Move Loop
-  useEffect(() => {
-    if (gameState.isGameOver || !activePlayer?.isBot) return;
+  const handlePawnClick = useCallback((pawnId: string) => {
+    const move = state.validMoves.find(m => m.pawnId === pawnId);
+    if (!move) return;
+    if (move.isCapture) sounds.playCapture?.();
+    else if (move.isFinish) sounds.playVictory?.();
+    else sounds.playHop?.();
+    engineSelectPawn(pawnId);
+  }, [state.validMoves, engineSelectPawn]);
 
-    // 1. Bot needs to roll dice
-    if (!gameState.hasRolled && !gameState.isRolling) {
-      botActionTimer.current = setTimeout(() => {
-        handleRollDice();
-      }, 700);
-      return;
-    }
+  const handleRestart = useCallback(() => {
+    restart(createInitialState(playerConfigs, playerCount).players as Player[]);
+  }, [restart, playerConfigs, playerCount]);
 
-    // 2. Bot has rolled and has moves to pick
-    if (gameState.hasRolled && !gameState.isRolling && gameState.validMoves.length > 0) {
-      botActionTimer.current = setTimeout(() => {
-        const best = getBestLudoMove(gameState.validMoves);
-        if (best) {
-          handleTokenClick(best.tokenId);
-        }
-      }, 500);
-      return;
-    }
-
-    return () => {
-      if (botActionTimer.current) clearTimeout(botActionTimer.current);
-    };
-  }, [
-    gameState.currentTurnIndex,
-    gameState.hasRolled,
-    gameState.isRolling,
-    gameState.validMoves,
-    gameState.isGameOver,
-    activePlayer?.isBot
-  ]);
-
-  const handleRollDice = () => {
-    if (gameState.isRolling || gameState.hasRolled || gameState.isGameOver) return;
-
-    sounds.playDiceRoll();
-    const roll = Math.floor(Math.random() * 6) + 1;
-    setGameState(prev => ({ ...prev, isRolling: true, diceValue: roll }));
-
-    setTimeout(() => {
-      setGameState(prev => {
-        const curPlayer = prev.players[prev.currentTurnIndex];
-        const validMoves = getLudoValidMoves(curPlayer, roll, prev.players);
-
-        if (validMoves.length === 0) {
-          // No valid moves -> Pass turn after brief pause
-          const nextState = passLudoTurn({
-            ...prev,
-            isRolling: false,
-            hasRolled: true,
-            diceValue: roll,
-            validMoves: [],
-            activityLog: [
-              `${curPlayer.name} rolled a ${roll} but has no moves.`,
-              ...prev.activityLog.slice(0, 8)
-            ]
-          });
-          return nextState;
-        }
-
-        // Auto move if exactly 1 move available and human player
-        if (validMoves.length === 1 && !curPlayer.isBot) {
-          setTimeout(() => {
-            handleTokenClick(validMoves[0].tokenId);
-          }, 350);
-        }
-
-        return {
-          ...prev,
-          isRolling: false,
-          hasRolled: true,
-          diceValue: roll,
-          validMoves
-        };
-      });
-    }, 450);
-  };
-
-  const handleTokenClick = (tokenId: number) => {
-    const { newState, capturedToken, reachedHome } = executeLudoTokenMove(
-      gameState,
-      tokenId
-    );
-
-    if (capturedToken) {
-      sounds.playCapture();
-    } else if (reachedHome) {
-      sounds.playVictory();
-    } else {
-      sounds.playHop();
-    }
-
-    setGameState(newState);
-
-    if (newState.isGameOver) {
-      sounds.playVictory();
-      const winner = newState.winnerRankings[0];
-      if (winner) {
-        StorageService.recordMatch('ludo', winner.name);
-      }
-      setTimeout(() => setShowResultModal(true), 800);
-    }
-  };
-
-  const handleRestart = () => {
-    setShowResultModal(false);
-    setGameState(
-      createInitialLudoState(
-        gameState.players.length,
-        gameState.players.map(p => ({ name: p.name, isBot: p.isBot }))
-      )
-    );
-  };
-
-  const handleSetupComplete = (
-    players: PlayerConfig[],
-    count: number,
-    selectedTheme?: string
-  ) => {
+  const handleSetupComplete = useCallback((players: PlayerConfig[], count: number, selectedTheme?: string) => {
+    const newConfigs: PlayerSetupConfig[] = players.map(p => ({ name: p.name, isBot: !!p.isBot }));
     if (selectedTheme) {
-      handleThemeChange(selectedTheme);
+      setTheme(selectedTheme);
+      StorageService.set('ludo_theme', selectedTheme);
     }
     StorageService.savePlayerConfigs('ludo', players);
-    setGameState(createInitialLudoState(count, players));
+    setPlayerConfigs(newConfigs);
+    setPlayerCount(count);
     setIsSetupOpen(false);
-  };
+    // restart with new config
+    restart(createInitialState(newConfigs, count).players);
+  }, [restart]);
 
-  const activeThemeObj = LUDO_THEMES.find(t => t.id === theme) || LUDO_THEMES[0];
+  const winner = state.winnersRanking.length > 0
+    ? state.players.find(p => p.id === state.winnersRanking[0])
+    : null;
+
+  const isGameFinished = state.gameStatus === 'finished';
+  const isHandoff = state.gameStatus === 'handoff' && !isGameFinished;
+
+  const canRoll = !state.hasRolled && !state.diceRolling && !isGameFinished && !isHandoff && state.phase === 'rolling';
+  const isPlayerBot = currentPlayer?.isBot ?? false;
 
   return (
-    <div className="py-6 px-4 max-w-2xl mx-auto space-y-5 animate-fadeIn">
-      {/* Top Header */}
+    <div className="py-4 px-3 sm:px-4 max-w-2xl mx-auto space-y-3 animate-fadeIn">
+      {/* Header */}
       <GameHeader
         title="Ludo"
         icon="🎲"
-        subtitle={`Theme: ${activeThemeObj.icon} ${activeThemeObj.name} • Tap ⚙️ to change`}
+        subtitle={`${playerCount} Players • 🌸 Cherry Blossom`}
         onRestart={handleRestart}
         onOpenSettings={() => setIsSetupOpen(true)}
       />
 
-      {/* Players Turn Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {gameState.players.map((p, idx) => {
-          const isTurn = idx === gameState.currentTurnIndex && !gameState.isGameOver;
-          const homeCount = p.tokens.filter(t => t.step === 56).length;
-
-          return (
-            <div
-              key={p.id}
-              className={`p-2.5 rounded-2xl border transition-all ${
-                isTurn
-                  ? 'bg-slate-800 border-amber-400 ring-2 ring-amber-400/30 shadow-lg scale-[1.02]'
-                  : 'bg-slate-900/80 border-slate-800 opacity-80'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span
-                  className="w-4 h-4 rounded-full border border-white flex-shrink-0"
-                  style={{ backgroundColor: p.colorHex }}
-                />
-                <div className="truncate">
-                  <span className="text-xs font-bold text-white block truncate">
-                    {p.name}
-                  </span>
-                  {p.isBot && (
-                    <span className="text-[9px] text-purple-400 font-bold block leading-none">
-                      AI Bot
-                    </span>
-                  )}
-                </div>
-              </div>
-              <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
-                <span>Home: {homeCount}/4</span>
-                {p.hasWon && <span className="text-amber-400 font-bold">Rank #{p.rank}</span>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 15x15 Themed Ludo Board */}
-      <LudoBoard
-        players={gameState.players}
-        validMoves={gameState.validMoves}
-        currentTurnIndex={gameState.currentTurnIndex}
-        hasRolled={gameState.hasRolled}
-        theme={theme}
-        onTokenClick={handleTokenClick}
+      {/* Player Status Strip */}
+      <PlayerPanel
+        players={state.players}
+        currentPlayerIndex={state.currentPlayerIndex}
+        isGameOver={isGameFinished}
       />
 
-      {/* Action Controls: Dice Roller & Status */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl bg-slate-900 border border-slate-800">
-        <div className="space-y-1 text-center sm:text-left">
-          <div className="text-xs font-black uppercase tracking-wider text-orange-400 flex items-center gap-1.5 justify-center sm:justify-start">
-            <span>{gameState.isGameOver ? 'Game Over' : `Current Turn: ${activePlayer?.name}`}</span>
-            {activePlayer?.isBot && !gameState.isGameOver && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 font-bold">
-                🤖 AI Moving...
-              </span>
+      {/* Turn Indicator */}
+      {currentPlayer && !isGameFinished && (
+        <TurnIndicator currentPlayer={currentPlayer} gameState={state} />
+      )}
+
+      {/* The Board */}
+      <LudoBoard
+        gameState={state}
+        boardCells={boardCells}
+        onPawnClick={handlePawnClick}
+      />
+
+      {/* Dice + Action Controls */}
+      {!isGameFinished && (
+        <div className="flex items-center gap-4 p-4 rounded-2xl border"
+          style={{ background: `${currentPlayer?.colorHex}0D`, borderColor: `${currentPlayer?.colorHex}30` }}>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-black text-[#6B4536] truncate">
+              {isPlayerBot ? `🤖 ${currentPlayer?.name} is thinking...` : `${currentPlayer?.name}'s turn`}
+            </div>
+            <div className="text-[11px] text-[#8B6442] mt-0.5">
+              {state.hasRolled && state.validMoves.length > 0 && !isPlayerBot
+                ? '👆 Tap a glowing pawn to move!'
+                : state.hasRolled && state.validMoves.length === 0
+                ? 'No moves — passing turn...'
+                : isPlayerBot ? 'Bot is playing...' : 'Tap the dice to roll 🎲'
+              }
+            </div>
+            {/* Activity log — last action */}
+            {state.lastAction && (
+              <div className="text-[10px] text-[#a07850] mt-1 italic truncate">
+                {state.lastAction}
+              </div>
             )}
           </div>
-          <div className="text-xs text-slate-300">
-            {gameState.hasRolled
-              ? gameState.validMoves.length > 0
-                ? activePlayer?.isBot
-                  ? 'AI is selecting the best token move...'
-                  : '👉 Tap a bouncing token to move!'
-                : 'No moves available. Passing turn...'
-              : activePlayer?.isBot
-              ? 'Bot is rolling the dice...'
-              : 'Tap the dice to roll.'}
-          </div>
-        </div>
 
-        <DiceRoller
-          value={gameState.diceValue}
-          isRolling={gameState.isRolling}
-          disabled={gameState.hasRolled || gameState.isGameOver || activePlayer?.isBot}
-          onRoll={handleRollDice}
-          label={activePlayer?.name}
-        />
-      </div>
+          <Dice
+            value={state.diceValue}
+            rolling={state.diceRolling}
+            disabled={!canRoll || isPlayerBot}
+            onRoll={handleRollDice}
+          />
+        </div>
+      )}
 
       {/* Activity Log */}
-      <div className="p-3 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">
-          Recent Activity
-        </span>
-        <div className="space-y-1 text-xs text-slate-300 max-h-24 overflow-y-auto">
-          {gameState.activityLog.map((log, i) => (
-            <div key={i} className="text-[11px] text-slate-300">
-              &bull; {log}
-            </div>
-          ))}
+      {state.activityLog.length > 1 && (
+        <div className="p-3 rounded-xl bg-[#FFF7EF]/80 border border-[#C99A3D]/20">
+          <div className="text-[9px] font-black uppercase tracking-widest text-[#C99A3D] mb-1">Recent Activity</div>
+          <div className="space-y-0.5 max-h-16 overflow-y-auto">
+            {state.activityLog.slice(0, 5).map((log, i) => (
+              <div key={i} className="text-[10px] text-[#8B6442]">• {log}</div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Setup / Settings Modal with Theme Selection */}
+      {/* Pass & Play Handoff Modal */}
+      {isHandoff && currentPlayer && (
+        <PassDeviceModal player={currentPlayer} onContinue={confirmHandoff} />
+      )}
+
+      {/* Winner Modal */}
+      {isGameFinished && winner && (
+        <WinnerModal
+          winner={winner}
+          allPlayers={state.players}
+          winnersRanking={state.winnersRanking}
+          onPlayAgain={handleRestart}
+          onChangeSetup={() => setIsSetupOpen(true)}
+        />
+      )}
+
+      {/* Player Setup Modal */}
       <PlayerSetup
         isOpen={isSetupOpen}
         gameTitle="Ludo"
         minPlayers={2}
         maxPlayers={4}
-        initialPlayers={gameState.players.map(p => ({
-          name: p.name,
-          isBot: !!p.isBot
-        }))}
+        initialPlayers={playerConfigs}
         themes={LUDO_THEMES}
         currentTheme={theme}
-        onThemeChange={handleThemeChange}
+        onThemeChange={(t) => { setTheme(t); StorageService.set('ludo_theme', t); }}
         onStart={handleSetupComplete}
         onClose={() => setIsSetupOpen(false)}
-      />
-
-      {/* Result Celebration Modal */}
-      <GameResultModal
-        isOpen={showResultModal}
-        winnerName={gameState.winnerRankings[0]?.name || 'Winner'}
-        message="Mastered the board and brought all tokens home safely!"
-        onPlayAgain={handleRestart}
       />
     </div>
   );
