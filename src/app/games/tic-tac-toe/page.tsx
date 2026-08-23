@@ -12,11 +12,13 @@ import {
   resetTTTMatch,
   getBestTTTMove
 } from '@/games/tic-tac-toe/logic';
-import { TTTGameState, TTTMatchMode } from '@/games/tic-tac-toe/types';
+import { TTTGameState, TTTMatchMode, TTTTheme } from '@/games/tic-tac-toe/types';
 import { StorageService } from '@/lib/storage';
 import { sounds } from '@/lib/sounds';
 
 export default function TicTacToePage() {
+  const [theme, setTheme] = useState<TTTTheme>('voxel');
+
   const [gameState, setGameState] = useState<TTTGameState>(() =>
     createInitialTTTState(
       { name: 'Player 1', isBot: false },
@@ -30,8 +32,11 @@ export default function TicTacToePage() {
 
   const botTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load configured players from storage on mount
+  // Load configured players & theme from storage on mount
   useEffect(() => {
+    const savedTheme = StorageService.get<TTTTheme>('ttt_theme', 'voxel');
+    setTheme(savedTheme);
+
     const saved = StorageService.getPlayerConfigs('tic-tac-toe', [
       { name: 'Player 1', isBot: false },
       { name: 'Bot Alpha 🤖', isBot: true }
@@ -40,6 +45,12 @@ export default function TicTacToePage() {
       setGameState(createInitialTTTState(saved[0], saved[1], 'unlimited'));
     }
   }, []);
+
+  const handleThemeChange = (newTheme: TTTTheme) => {
+    sounds.playClick();
+    setTheme(newTheme);
+    StorageService.set('ttt_theme', newTheme);
+  };
 
   const activePlayer =
     gameState.turn === 'X' ? gameState.players[0] : gameState.players[1];
@@ -103,22 +114,81 @@ export default function TicTacToePage() {
     setIsSetupOpen(false);
   };
 
+  // Helper for piece badges based on theme
+  const getPieceBadge = (symbol: 'X' | 'O') => {
+    if (theme === 'voxel') {
+      return symbol === 'X'
+        ? { label: '💎 Diamond X', bg: 'bg-[#1b6460] text-[#70ffff] border-[#4dedea]' }
+        : { label: '🧱 Stone O', bg: 'bg-[#3b3b3b] text-[#d6d6d6] border-[#7d7d7d]' };
+    }
+    if (theme === 'neon') {
+      return symbol === 'X'
+        ? { label: '⚡ Cyan X', bg: 'bg-cyan-950 text-cyan-300 border-cyan-500' }
+        : { label: '🌸 Rose O', bg: 'bg-rose-950 text-rose-300 border-rose-500' };
+    }
+    return symbol === 'X'
+      ? { label: 'Charcoal X', bg: 'bg-[#181b20] text-slate-200 border-slate-700' }
+      : { label: 'Terracotta O', bg: 'bg-[#d33420] text-white border-red-400' };
+  };
+
   return (
-    <div className="py-6 px-4 max-w-lg mx-auto space-y-6 animate-fadeIn">
+    <div className="py-6 px-4 max-w-lg mx-auto space-y-5 animate-fadeIn">
       {/* Top Header */}
       <GameHeader
         title="Tic Tac Toe"
         icon="❌⭕"
-        subtitle="Classic Handcrafted Board • Play with Friends or AI"
+        subtitle="Voxel Craft & Classic Themes • Play with Friends or AI"
         onRestart={handleRestartMatch}
         onOpenSettings={() => setIsSetupOpen(true)}
       />
+
+      {/* Theme Switcher Bar */}
+      <div className="flex items-center justify-center gap-2 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-md">
+        <span className="text-[11px] font-bold text-slate-400 pl-1">Theme:</span>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => handleThemeChange('voxel')}
+            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              theme === 'voxel'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>💎 Block Craft</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleThemeChange('wood')}
+            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              theme === 'wood'
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md shadow-amber-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>🪵 Classic Wood</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleThemeChange('neon')}
+            className={`px-3 py-1 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
+              theme === 'neon'
+                ? 'bg-gradient-to-r from-cyan-600 to-rose-600 text-white shadow-md shadow-cyan-500/20'
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <span>⚡ Cyber Neon</span>
+          </button>
+        </div>
+      </div>
 
       {/* Players Scoreboard & Active Turn Badge */}
       <div className="grid grid-cols-2 gap-3">
         {gameState.players.map(p => {
           const isTurn = gameState.turn === p.symbol && !gameState.isGameOver;
-          const isX = p.symbol === 'X';
+          const badge = getPieceBadge(p.symbol);
 
           return (
             <div
@@ -132,11 +202,7 @@ export default function TicTacToePage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs shadow-md ${
-                      isX
-                        ? 'bg-[#181b20] text-slate-200 border border-slate-700'
-                        : 'bg-[#d33420] text-white border border-red-400'
-                    }`}
+                    className={`px-2 py-1 rounded-lg flex items-center justify-center font-black text-xs shadow-md border ${badge.bg}`}
                   >
                     {p.symbol}
                   </span>
@@ -144,11 +210,9 @@ export default function TicTacToePage() {
                     <span className="font-bold text-xs text-white block truncate">
                       {p.name}
                     </span>
-                    {p.isBot && (
-                      <span className="text-[9px] text-purple-400 font-bold block leading-none">
-                        AI Bot
-                      </span>
-                    )}
+                    <span className="text-[9px] text-slate-400 font-bold block leading-none truncate">
+                      {badge.label}
+                    </span>
                   </div>
                 </div>
                 <span className="text-xl font-black text-amber-400">{p.score}</span>
@@ -163,12 +227,13 @@ export default function TicTacToePage() {
         })}
       </div>
 
-      {/* Classic Wooden Game Board */}
+      {/* Themed Game Board */}
       <div className="py-2">
         <TTTBoard
           board={gameState.board}
           winResult={gameState.winResult}
           isGameOver={gameState.isGameOver}
+          theme={theme}
           onCellClick={handleCellClick}
         />
       </div>
@@ -180,7 +245,7 @@ export default function TicTacToePage() {
             ? gameState.winner === 'Draw'
               ? "🤝 It's a draw! Tap Play Again below."
               : `👑 ${gameState.winner === 'X' ? gameState.players[0].name : gameState.players[1].name} wins this round!`
-            : `Turn: ${activePlayer.name} (${activePlayer.symbol === 'X' ? 'Charcoal X' : 'Terracotta O'})`}
+            : `Turn: ${activePlayer.name} (${getPieceBadge(activePlayer.symbol).label})`}
         </p>
       </div>
 

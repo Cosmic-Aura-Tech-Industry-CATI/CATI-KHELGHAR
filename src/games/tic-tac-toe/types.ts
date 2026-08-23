@@ -2,6 +2,8 @@ export type CellValue = 'X' | 'O' | null;
 
 export type TTTMatchMode = 'unlimited' | 'bo3';
 
+export type TTTTheme = 'wood' | 'voxel' | 'neon';
+
 export interface TTTPlayer {
   id: number;
   name: string;
@@ -24,4 +26,5 @@ export interface TTTGameState {
   winResult: TTTWinResult | null;
   mode: TTTMatchMode;
   matchWinner: TTTPlayer | null;
+  theme?: TTTTheme;
 }
