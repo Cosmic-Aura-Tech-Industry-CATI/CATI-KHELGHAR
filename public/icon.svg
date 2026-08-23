@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="kg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f97316" />
+      <stop offset="50%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#f97316" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <!-- Rounded Base -->
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="#0f172a" />
+  <rect x="24" y="24" width="464" height="464" rx="112" fill="url(#kg-grad)" opacity="0.12" />
+  <rect x="28" y="28" width="456" height="456" rx="108" fill="none" stroke="url(#kg-grad)" stroke-width="8" opacity="0.4" />
+  
+  <!-- 3D Dice / Chaupar Motif -->
+  <g transform="translate(256, 256)" filter="url(#glow)">
+    <!-- 4 Quadrant Colors (Ludo / Chaupar Cross) -->
+    <path d="M -110 -110 L -20 -110 L -20 -20 L -110 -20 Z" fill="#ef4444" rx="16" />
+    <path d="M 20 -110 L 110 -110 L 110 -20 L 20 -20 Z" fill="#10b981" rx="16" />
+    <path d="M 20 20 L 110 20 L 110 110 L 20 110 Z" fill="#f59e0b" rx="16" />
+    <path d="M -110 20 L -20 20 L -20 110 L -110 110 Z" fill="#0284c7" rx="16" />
+    
+    <!-- Central Gold Star -->
+    <polygon points="0,-32 10,-10 32,-10 14,4 20,26 0,14 -20,26 -14,4 -32,-10 -10,-10" fill="#ffffff" />
+  </g>
+</svg>

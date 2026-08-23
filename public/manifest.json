@@ -1,0 +1,18 @@
+{
+  "name": "CATI KHELGHAR - Offline Family Games",
+  "short_name": "CATI KHELGHAR",
+  "description": "Play Tic Tac Toe, Ludo, Snake & Ladders, Four in a Row, Dots & Boxes, and Carrom with family & friends offline on the same device.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#f97316",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
