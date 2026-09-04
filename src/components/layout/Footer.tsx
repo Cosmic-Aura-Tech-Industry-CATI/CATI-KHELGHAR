@@ -58,22 +58,29 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      {/* Attribution Row: Design & Developed by DIMISI (Logo redirects to dimisi.tech) */}
-      <div className="max-w-6xl mx-auto pt-4 border-t border-slate-900/90 flex flex-col sm:flex-row items-center justify-center gap-2.5 text-xs text-slate-400">
-        <span>Design &amp; Developed by</span>
+      {/* Attribution Row: Explicit link to Shikhar Dixit and DIMISI Technologies */}
+      <div className="max-w-6xl mx-auto pt-4 border-t border-slate-900/90 flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-slate-400 text-center">
+        <span>Conceived &amp; Developed by</span>
+        <Link
+          href="/team/shikhar-dixit"
+          className="text-orange-400 hover:text-orange-300 font-bold underline underline-offset-2 transition-colors"
+        >
+          Shikhar Dixit
+        </Link>
+        <span>(Founder &amp; CEO) &middot;</span>
         <a
           href="https://dimisi.tech"
           target="_blank"
           rel="noopener noreferrer"
-          title="Visit DIMISI.TECH"
-          className="inline-flex items-center group transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-lg px-1.5 py-0.5"
+          className="hover:opacity-80 transition-opacity inline-flex items-center gap-1.5"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/dimisi-logo.png"
-            alt="DIMISI"
-            className="h-6 sm:h-7 w-auto object-contain brightness-95 group-hover:brightness-125 transition-all drop-shadow-[0_2px_8px_rgba(255,255,255,0.15)]"
+            alt="DIMISI Technologies Logo"
+            className="h-4 w-auto object-contain opacity-80"
           />
+          <span className="font-bold text-white">DIMISI Technologies Pvt Ltd</span>
         </a>
       </div>
     </footer>
