@@ -108,7 +108,7 @@ export const RULES: LudoRules = {
   requireSixToExitHome: true,
   exactRollToFinish: true,
   maxConsecutiveSixes: 3,
-  showPassAndPlayScreen: true,
+  showPassAndPlayScreen: false,
 };
 
 export const TOTAL_STEPS = 57; // step at which pawn is finished

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Volume2, VolumeX, Menu, X, Gamepad2, Info, HelpCircle } from 'lucide-react';
+import { Volume2, VolumeX, Menu, X, Gamepad2, Info, HelpCircle, Users } from 'lucide-react';
 import { sounds } from '@/lib/sounds';
 import { OfflineBadge } from '../ui/OfflineBadge';
 
@@ -24,6 +24,7 @@ export const Header: React.FC = () => {
   const navLinks = [
     { href: '/games', label: 'Games', icon: Gamepad2 },
     { href: '/how-to-play', label: 'How to Play', icon: HelpCircle },
+    { href: '/team', label: 'Team', icon: Users },
     { href: '/about', label: 'About', icon: Info }
   ];
 
