@@ -30,23 +30,23 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/80 backdrop-blur-xl">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2">
         {/* Brand Logo with Favicon Image */}
         <Link
           href="/"
-          className="flex items-center gap-2.5 group focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-xl p-1"
+          className="flex items-center gap-2 sm:gap-2.5 group focus:outline-none focus:ring-2 focus:ring-amber-400 rounded-xl p-0.5 sm:p-1 min-w-0 flex-shrink"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/icon.svg"
             alt="CATI KHELGHAR Logo"
-            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-orange-500/25 border border-orange-500/30 group-hover:scale-105 transition-transform object-contain"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl shadow-lg shadow-orange-500/25 border border-orange-500/30 group-hover:scale-105 transition-transform object-contain flex-shrink-0"
           />
-          <div>
-            <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5 leading-none">
+          <div className="min-w-0">
+            <span className="text-base sm:text-lg font-black tracking-tight text-white flex items-center gap-1 sm:gap-1.5 leading-none truncate">
               CATI <span className="text-orange-500">KHELGHAR</span>
             </span>
-            <span className="text-[10px] text-slate-400 block font-medium mt-1">
+            <span className="text-[9px] sm:text-[10px] text-slate-400 block font-medium mt-0.5 truncate hidden xs:block">
               Play Together. Offline.
             </span>
           </div>
@@ -75,7 +75,7 @@ export const Header: React.FC = () => {
         </nav>
 
         {/* Controls: Offline Status + Sound Toggle + Mobile Menu */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           <OfflineBadge />
 
           {/* Sound Toggle */}

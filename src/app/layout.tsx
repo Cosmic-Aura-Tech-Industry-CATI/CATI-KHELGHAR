@@ -155,14 +155,30 @@ export default function RootLayout({
         <main className="flex-1 w-full">{children}</main>
         <Footer />
 
-        {/* PWA Service Worker Registration Script */}
+        {/* PWA Service Worker Registration Script - Production Only */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js');
-                });
+                if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                  window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js');
+                  });
+                } else {
+                  // Running on localhost: aggressively unregister and purge to protect dev server
+                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                    for (var r of registrations) {
+                      r.unregister();
+                    }
+                  });
+                  if ('caches' in window) {
+                    caches.keys().then(function(names) {
+                      for (var name of names) {
+                        caches.delete(name);
+                      }
+                    });
+                  }
+                }
               }
             `,
           }}

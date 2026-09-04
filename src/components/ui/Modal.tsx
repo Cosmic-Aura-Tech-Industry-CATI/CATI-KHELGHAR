@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { sounds } from '@/lib/sounds';
 
@@ -19,27 +20,46 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   maxWidth = 'max-w-md'
 }) => {
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === 'Escape') {
         sounds.playClick();
         onClose();
       }
     };
+
+    // Lock body scrolling while modal is active
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  const modalContent = (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+      onClick={onClose}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn"
+      style={{ margin: 0, top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div
-        className={`relative w-full ${maxWidth} bg-slate-900 border border-slate-700/80 rounded-3xl p-6 shadow-2xl shadow-slate-950 overflow-hidden transform transition-all`}
+        onClick={(e) => e.stopPropagation()}
+        className={`relative w-full ${maxWidth} max-h-[85vh] overflow-y-auto rounded-3xl bg-slate-900 border border-slate-700/90 p-5 sm:p-6 shadow-2xl shadow-slate-950/80`}
       >
         {title && (
           <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-5">
@@ -61,4 +81,6 @@ export const Modal: React.FC<ModalProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 };

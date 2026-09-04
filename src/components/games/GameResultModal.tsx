@@ -8,7 +8,8 @@ import { Button } from '../ui/Button';
 
 interface GameResultModalProps {
   isOpen: boolean;
-  winnerName: string | null;
+  winnerName?: string | null;
+  winner?: { name: string; score?: number } | null;
   isDraw?: boolean;
   message?: string;
   onPlayAgain: () => void;
@@ -18,10 +19,13 @@ interface GameResultModalProps {
 export const GameResultModal: React.FC<GameResultModalProps> = ({
   isOpen,
   winnerName,
+  winner,
   isDraw = false,
   message,
-  onPlayAgain
+  onPlayAgain,
+  onClose
 }) => {
+  const resolvedWinnerName = winner ? winner.name : winnerName;
   return (
     <Modal isOpen={isOpen} onClose={onPlayAgain} maxWidth="max-w-sm">
       <div className="text-center space-y-4 py-2">
@@ -33,7 +37,7 @@ export const GameResultModal: React.FC<GameResultModalProps> = ({
         {/* Headline */}
         <div>
           <h2 className="text-2xl font-black text-white">
-            {isDraw ? "It's a Draw!" : `${winnerName} Wins!`}
+            {isDraw ? "It's a Draw!" : `${resolvedWinnerName || 'Player'} Wins!`}
           </h2>
           <p className="text-xs font-medium text-slate-400 mt-1">
             {message || (isDraw ? 'That was a close contest! Ready for a rematch?' : 'Victory is yours! Conquered the board with skill.')}

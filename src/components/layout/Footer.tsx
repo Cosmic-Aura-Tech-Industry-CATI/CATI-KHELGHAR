@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { StorageService } from '@/lib/storage';
 import { sounds } from '@/lib/sounds';
+import { OfflineModal } from '../ui/OfflineModal';
 
 export const Footer: React.FC = () => {
   const handleResetData = () => {
@@ -18,6 +19,8 @@ export const Footer: React.FC = () => {
       }
     }
   };
+
+  const [offlineModalOpen, setOfflineModalOpen] = React.useState<boolean>(false);
 
   return (
     <footer className="w-full border-t border-slate-800/80 bg-slate-950/80 py-8 px-4 sm:px-6 mt-12 space-y-6">
@@ -36,6 +39,13 @@ export const Footer: React.FC = () => {
 
         {/* Links */}
         <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+          <button
+            type="button"
+            onClick={() => setOfflineModalOpen(true)}
+            className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>📥</span> Save Offline
+          </button>
           <Link href="/how-to-play" className="hover:text-orange-400 transition-colors">
             How to Play
           </Link>
@@ -83,6 +93,11 @@ export const Footer: React.FC = () => {
           <span className="font-bold text-white">DIMISI Technologies Pvt Ltd</span>
         </a>
       </div>
+
+      <OfflineModal
+        isOpen={offlineModalOpen}
+        onClose={() => setOfflineModalOpen(false)}
+      />
     </footer>
   );
 };

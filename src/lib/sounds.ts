@@ -103,6 +103,10 @@ class SoundEffectsEngine {
     }
   }
 
+  public playDice(): void {
+    this.playDiceRoll();
+  }
+
   // Token Hop / Movement
   public playHop(): void {
     if (!this.enabled) return;
@@ -126,6 +130,10 @@ class SoundEffectsEngine {
       osc.start();
       osc.stop(this.ctx.currentTime + 0.07);
     } catch {}
+  }
+
+  public playMove(): void {
+    this.playHop();
   }
 
   // Capture Blast

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'catikhelghar-v10';
+const CACHE_NAME = 'catikhelghar-v11';
 
 const STATIC_ASSETS = [
   '/',
@@ -9,6 +9,16 @@ const STATIC_ASSETS = [
   '/games/connect-four',
   '/games/dots-and-boxes',
   '/games/carrom',
+  '/games/chess',
+  '/games/checkers',
+  '/games/reversi',
+  '/games/ashta-chamma',
+  '/games/bagh-chal',
+  '/games/mancala',
+  '/games/battleship',
+  '/games/yahtzee',
+  '/games/sos',
+  '/games/memory-match',
   '/how-to-play',
   '/about',
   '/team',
@@ -28,13 +38,17 @@ const STATIC_ASSETS = [
 // Determine if request is cacheable
 function isCacheable(request) {
   try {
+    // 1. NEVER cache or intercept anything in local development (localhost / 127.0.0.1)
+    if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+      return false;
+    }
     if (request.method !== 'GET') return false;
     const url = new URL(request.url);
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
     // Only intercept same-origin requests
     if (url.origin !== self.location.origin) return false;
     // Do not intercept Next.js development and hot reload requests
-    if (url.pathname.startsWith('/_next/webpack-hmr')) return false;
+    if (url.pathname.startsWith('/_next/')) return false;
     if (url.pathname.startsWith('/__nextjs')) return false;
     return true;
   } catch (e) {
@@ -44,6 +58,11 @@ function isCacheable(request) {
 
 // Pre-cache static shell on install
 self.addEventListener('install', function (event) {
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    self.skipWaiting();
+    return;
+  }
+
   event.waitUntil(
     caches.open(CACHE_NAME).then(function (cache) {
       return Promise.allSettled(
@@ -60,6 +79,21 @@ self.addEventListener('install', function (event) {
 
 // Clear old cache versions on activate
 self.addEventListener('activate', function (event) {
+  if (self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1') {
+    event.waitUntil(
+      caches.keys().then(function (keys) {
+        return Promise.all(
+          keys.map(function (key) {
+            return caches.delete(key);
+          })
+        );
+      }).then(function () {
+        return self.registration.unregister();
+      })
+    );
+    return;
+  }
+
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(
@@ -151,19 +185,23 @@ self.addEventListener('fetch', function (event) {
         return cachedResponse;
       }
 
-      return fetch(request).then(function (networkResponse) {
-        if (
-          networkResponse &&
-          networkResponse.status === 200 &&
-          networkResponse.type === 'basic'
-        ) {
-          const copy = networkResponse.clone();
-          caches.open(CACHE_NAME).then(function (cache) {
-            cache.put(request, copy);
-          });
-        }
-        return networkResponse;
-      });
+      return fetch(request)
+        .then(function (networkResponse) {
+          if (
+            networkResponse &&
+            networkResponse.status === 200 &&
+            networkResponse.type === 'basic'
+          ) {
+            const copy = networkResponse.clone();
+            caches.open(CACHE_NAME).then(function (cache) {
+              cache.put(request, copy);
+            });
+          }
+          return networkResponse;
+        })
+        .catch(function (fetchErr) {
+          return new Response('', { status: 408, statusText: 'Request Timeout / Offline' });
+        });
     })
   );
 });

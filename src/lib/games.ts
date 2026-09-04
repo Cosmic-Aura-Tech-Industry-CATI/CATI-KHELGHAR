@@ -33,12 +33,12 @@ export const GAMES_REGISTRY: Game[] = [
     available: true,
     category: 'quick',
     themeColor: {
-      primary: '#0284c7', // Sky Blue
+      primary: '#0284c7',
       light: '#e0f2fe',
       border: '#bae6fd',
-      badge: 'bg-sky-100 text-sky-800'
+      badge: 'bg-sky-100 text-sky-800',
     },
-    highlights: ['Single Match & Series', 'Custom Player Names', 'Winning Line Strike', 'Running Scoreboard']
+    highlights: ['Single Match & Series', 'Custom Player Names', 'Winning Line Strike', 'Running Scoreboard'],
   },
   {
     id: 'ludo',
@@ -53,12 +53,12 @@ export const GAMES_REGISTRY: Game[] = [
     available: true,
     category: 'classic',
     themeColor: {
-      primary: '#dc2626', // Crimson Red
+      primary: '#dc2626',
       light: '#fee2e2',
       border: '#fca5a5',
-      badge: 'bg-red-100 text-red-800'
+      badge: 'bg-red-100 text-red-800',
     },
-    highlights: ['2, 3, or 4 Players', 'Safe Star Spots', 'Token Captures & Bonus Rolls', 'Authentic 15x15 Board']
+    highlights: ['2, 3, or 4 Players', 'Safe Star Spots', 'Token Captures & Bonus Rolls', 'Authentic 15x15 Board'],
   },
   {
     id: 'snake-and-ladders',
@@ -73,12 +73,12 @@ export const GAMES_REGISTRY: Game[] = [
     available: true,
     category: 'classic',
     themeColor: {
-      primary: '#16a34a', // Emerald Green
+      primary: '#16a34a',
       light: '#dcfce7',
       border: '#86efac',
-      badge: 'bg-emerald-100 text-emerald-800'
+      badge: 'bg-emerald-100 text-emerald-800',
     },
-    highlights: ['Animated Token Jumps', '100-Cell Zigzag Board', 'Exact 100 Win Rule', 'Interactive Dice Roller']
+    highlights: ['Animated Token Jumps', '100-Cell Zigzag Board', 'Exact 100 Win Rule', 'Interactive Dice Roller'],
   },
   {
     id: 'connect-four',
@@ -96,9 +96,9 @@ export const GAMES_REGISTRY: Game[] = [
       primary: '#9333ea',
       light: '#f3e8ff',
       border: '#d8b4fe',
-      badge: 'bg-purple-100 text-purple-800'
+      badge: 'bg-purple-100 text-purple-800',
     },
-    highlights: ['Gravity Drop Physics', 'Winning 4-in-a-row Glow', '2-Player Strategy', 'Running Match Score']
+    highlights: ['Gravity Drop Physics', 'Winning 4-in-a-row Glow', '2-Player Strategy', 'Running Match Score'],
   },
   {
     id: 'dots-and-boxes',
@@ -116,9 +116,9 @@ export const GAMES_REGISTRY: Game[] = [
       primary: '#ea580c',
       light: '#ffedd5',
       border: '#fed7aa',
-      badge: 'bg-orange-100 text-orange-800'
+      badge: 'bg-orange-100 text-orange-800',
     },
-    highlights: ['3x3 & 4x4 Grid Modes', 'Territory Conquering', 'Bonus Turn on Capture', 'Pen & Paper Tabletop']
+    highlights: ['3x3 & 4x4 Grid Modes', 'Territory Conquering', 'Bonus Turn on Capture', 'Pen & Paper Tabletop'],
   },
   {
     id: 'carrom',
@@ -136,16 +136,216 @@ export const GAMES_REGISTRY: Game[] = [
       primary: '#d97706',
       light: '#fef3c7',
       border: '#fde68a',
-      badge: 'bg-amber-100 text-amber-800'
+      badge: 'bg-amber-100 text-amber-800',
     },
-    highlights: ['Interactive Striker Aiming', '2D Disc Elastic Physics', 'Queen + White/Black Scoring', 'Pass & Play Tabletop']
-  }
+    highlights: ['Interactive Striker Aiming', '2D Disc Elastic Physics', 'Queen + White/Black Scoring', 'Pass & Play Tabletop'],
+  },
+  {
+    id: 'chess',
+    name: 'Chess (शतरंज)',
+    tagline: 'The Ultimate Strategy Battle',
+    description: 'Master the 64 squares. Command pawns, knights, and royalty in the timeless battle of intellect with full checkmate detection.',
+    icon: '♟️',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/chess',
+    available: true,
+    category: 'strategy',
+    themeColor: {
+      primary: '#b45309',
+      light: '#fef3c7',
+      border: '#fcd34d',
+      badge: 'bg-amber-100 text-amber-900',
+    },
+    highlights: ['Full Legal Move Validation', 'Castling & En Passant', 'Check & Checkmate Detection', 'Royal Wood & Cyberpunk Themes'],
+  },
+  {
+    id: 'checkers',
+    name: 'Checkers (Draughts)',
+    tagline: 'Jump. Crown. Dominate.',
+    description: 'Fast-paced diagonal combat! Jump opposing pieces, complete double jumps, and reach the back rank to crown your kings.',
+    icon: '🏁',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/checkers',
+    available: true,
+    category: 'classic',
+    themeColor: {
+      primary: '#c026d3',
+      light: '#fae8ff',
+      border: '#f0abfc',
+      badge: 'bg-fuchsia-100 text-fuchsia-900',
+    },
+    highlights: ['Mandatory Jump Capture', 'Multi-Jump Sequences', 'King Crowning Animations', 'Mahogany & Emerald Themes'],
+  },
+  {
+    id: 'reversi',
+    name: 'Reversi (Othello)',
+    tagline: 'A Minute to Learn, Lifetime to Master',
+    description: 'Trap and flip your opponent\'s disks between yours! A single move can dramatically flip the tides of the entire board.',
+    icon: '⚪⚫',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/reversi',
+    available: true,
+    category: 'strategy',
+    themeColor: {
+      primary: '#059669',
+      light: '#d1fae5',
+      border: '#6ee7b7',
+      badge: 'bg-emerald-100 text-emerald-900',
+    },
+    highlights: ['3D Disk Flip Animation', 'Legal Move Indicators', 'Live Running Counter', 'Midnight & Felt Themes'],
+  },
+  {
+    id: 'ashta-chamma',
+    name: 'Ashta Chamma',
+    tagline: 'Ancient Indian Cowrie Shell Race',
+    description: 'The ancient 5x5 concentric race (Chauka Bara)! Roll 4 cowrie shells, race around the outer ring, enter the inner sanctum, and capture rivals.',
+    icon: '🐚',
+    minPlayers: 2,
+    maxPlayers: 4,
+    playersLabel: '2 - 4 Players',
+    route: '/games/ashta-chamma',
+    available: true,
+    category: 'classic',
+    themeColor: {
+      primary: '#b91c1c',
+      light: '#fee2e2',
+      border: '#fca5a5',
+      badge: 'bg-red-100 text-red-900',
+    },
+    highlights: ['4 Cowrie Shells (0,1,2,3,4,8)', '5x5 Concentric Spiral Grid', 'Safe Cross Haveli Spots', 'Terracotta & Sandalwood Themes'],
+  },
+  {
+    id: 'mancala',
+    name: 'Mancala (Kalah)',
+    tagline: 'Ancient Pit & Pebble Strategy',
+    description: 'Sow seeds into pits and capture the opponent\'s reserves! Land your last seed in your Kalah store to earn bonus turns.',
+    icon: '🪨',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/mancala',
+    available: true,
+    category: 'strategy',
+    themeColor: {
+      primary: '#78350f',
+      light: '#fef3c7',
+      border: '#fde68a',
+      badge: 'bg-yellow-100 text-yellow-900',
+    },
+    highlights: ['Carved Wooden Board', 'Seed Sowing Logic', 'Opposite Pit Captures', 'Free Turn on Kalah Landing'],
+  },
+  {
+    id: 'bagh-chal',
+    name: 'Bagh-Chal (Tigers & Goats)',
+    tagline: 'Asymmetric Himalayan Tactics',
+    description: '4 Tigers hunt while 20 Goats encircle! Will the tigers trap enough prey, or will the goats box in the ferocious predators?',
+    icon: '🐅🐐',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/bagh-chal',
+    available: true,
+    category: 'strategy',
+    themeColor: {
+      primary: '#ea580c',
+      light: '#ffedd5',
+      border: '#fed7aa',
+      badge: 'bg-orange-100 text-orange-900',
+    },
+    highlights: ['4 Tigers vs 20 Goats', 'Two Distinct Game Phases', 'Tiger Jump Captures', 'Himalayan Slate & Brass Themes'],
+  },
+  {
+    id: 'battleship',
+    name: 'Battleship',
+    tagline: 'Pass & Play Naval Warfare',
+    description: 'Deploy your secret armada and call coordinates to bombard enemy vessels! Features a secret handoff curtain for single-screen play.',
+    icon: '🚢',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/battleship',
+    available: true,
+    category: 'strategy',
+    themeColor: {
+      primary: '#0369a1',
+      light: '#e0f2fe',
+      border: '#7dd3fc',
+      badge: 'bg-sky-100 text-sky-900',
+    },
+    highlights: ['Secret Fleet Placement', 'Pass-Device Privacy Screen', 'Radar Hit & Miss Effects', 'Sonar Ocean & Blueprint Themes'],
+  },
+  {
+    id: 'yahtzee',
+    name: 'Yahtzee (Dice Poker)',
+    tagline: '5 Dice. 3 Rolls. Max Score.',
+    description: 'Roll five dice up to three times per turn! Lock keeper dice, craft Full Houses, Large Straights, and hunt for the 50-point Yahtzee!',
+    icon: '🎲✨',
+    minPlayers: 2,
+    maxPlayers: 4,
+    playersLabel: '2 - 4 Players',
+    route: '/games/yahtzee',
+    available: true,
+    category: 'party',
+    themeColor: {
+      primary: '#e11d48',
+      light: '#ffe4e6',
+      border: '#fda4af',
+      badge: 'bg-rose-100 text-rose-900',
+    },
+    highlights: ['5 3D Physics Dice', 'Lock & Hold Dice Controls', '13 Score Categories', 'Vegas Velvet & Tavern Themes'],
+  },
+  {
+    id: 'sos',
+    name: 'SOS Game',
+    tagline: 'Classic Pen & Paper Duel',
+    description: 'Take turns placing S or O on the grid! Complete S-O-S in any direction to claim points and earn consecutive bonus turns.',
+    icon: '✏️',
+    minPlayers: 2,
+    maxPlayers: 2,
+    playersLabel: '2 Players',
+    route: '/games/sos',
+    available: true,
+    category: 'quick',
+    themeColor: {
+      primary: '#4f46e5',
+      light: '#e0e7ff',
+      border: '#a5b4fc',
+      badge: 'bg-indigo-100 text-indigo-900',
+    },
+    highlights: ['Custom 5x5 to 8x8 Grids', 'S/O Piece Selector', 'Winning Line Strikethroughs', 'Notebook & Chalkboard Themes'],
+  },
+  {
+    id: 'memory-match',
+    name: 'Memory Match',
+    tagline: 'Flip, Remember & Pair Up',
+    description: 'Test your family\'s memory! Flip cards two at a time to find matching pairs. Highest pair count when the board is cleared wins!',
+    icon: '🃏',
+    minPlayers: 2,
+    maxPlayers: 4,
+    playersLabel: '2 - 4 Players',
+    route: '/games/memory-match',
+    available: true,
+    category: 'party',
+    themeColor: {
+      primary: '#0891b2',
+      light: '#cffafe',
+      border: '#67e8f9',
+      badge: 'bg-cyan-100 text-cyan-900',
+    },
+    highlights: ['3D Card Flip Animations', 'Custom 4x4 & 6x6 Grids', 'Streak Multipliers', 'Indian Wildlife & Gems Themes'],
+  },
 ];
 
 export function getAvailableGames(): Game[] {
-  return GAMES_REGISTRY.filter(g => g.available);
+  return GAMES_REGISTRY.filter((g) => g.available);
 }
 
 export function getGameById(id: string): Game | undefined {
-  return GAMES_REGISTRY.find(g => g.id === id);
+  return GAMES_REGISTRY.find((g) => g.id === id);
 }
